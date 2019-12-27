@@ -3,12 +3,22 @@
 #include <SoftwareSerial.h>
 
 struct MotorSpeeds {
-  uint8_t left;
-  uint8_t right;
+  int8_t left;
+  int8_t right;
 } motorSpeeds;
+
+struct SensorData {
+  float x;
+  float y;
+  float z;
+} sensorData;
 
 SerialTransfer myTransfer;
 SoftwareSerial Serial1(10, 11); // RX, TX
+
+float getRandom() {
+  return (random(1, 2000000) - 1000000) / 100.0;
+}
 
 void setup()
 {
@@ -20,6 +30,22 @@ void setup()
 
 void loop()
 {
+  sensorData.x = getRandom();
+  sensorData.y = getRandom();
+  sensorData.z = getRandom();
+
+  // use this variable to keep track of how many
+  // bytes we're stuffing in the transmit buffer
+  uint16_t sendSize = 0;
+
+  ///////////////////////////////////////// Stuff buffer with struct
+  myTransfer.txObj(sensorData, sizeof(sensorData), sendSize);
+  sendSize += sizeof(sensorData);
+
+  ///////////////////////////////////////// Send buffer
+  myTransfer.sendData(sendSize);
+  delay(100);
+
   if(myTransfer.available())
   {
     uint8_t recSize = 0;
